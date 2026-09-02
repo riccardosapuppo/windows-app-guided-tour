@@ -237,9 +237,51 @@ async function main() {
   console.log('');
   if (failures > 0) {
     console.log(`${failures} of ${checks} checks failed.`);
-    process.exit(1);
+    // Set, not called. `process.exit()` here would skip the cleanup below and
+    // leave a window on somebody's desktop every time a check failed.
+    process.exitCode = 1;
+    return;
   }
   console.log(`All ${checks} checks passed.`);
+}
+
+/**
+ * Closes the invented application, and waits until it is really gone.
+ *
+ * This used to be `process.on('exit', () => started?.kill())`, which is exactly
+ * backwards, and it hung continuous integration for two hours before anybody
+ * noticed. A spawned child holds a handle that keeps Node's event loop alive,
+ * so while the application is still running the process never becomes ready to
+ * exit — and `'exit'`, which fires only when it is, therefore never fires. The
+ * cleanup was waiting for the shutdown that the thing it was cleaning up was
+ * preventing.
+ *
+ * It never showed up on this machine because the desktop here usually had the
+ * application already open from an earlier run, so nothing was spawned and
+ * nothing held the loop. On a runner there is nothing open, every time.
+ */
+async function closeTheApplication() {
+  if (!started || started.exitCode !== null) return;
+
+  await new Promise((done) => {
+    const impatient = setTimeout(() => {
+      // The whole tree: the window belongs to the PowerShell process, and a
+      // polite kill of a host process does not always take its children.
+      try {
+        spawn('taskkill', ['/PID', String(started.pid), '/T', '/F'], { stdio: 'ignore' });
+      } catch {
+        /* it is going away one way or another */
+      }
+      done();
+    }, 5000);
+
+    started.once('exit', () => {
+      clearTimeout(impatient);
+      done();
+    });
+
+    started.kill();
+  });
 }
 
 /**
@@ -269,9 +311,17 @@ async function waitUntilFinished(tour, step, timeoutMs = 5000) {
 
 const pause = (ms) => new Promise((done) => setTimeout(done, ms));
 
-process.on("exit", () => started?.kill());
+// Still here as a last resort, for a signal or an unforeseen exit. It is not
+// the cleanup any more — see closeTheApplication — because by the time this
+// fires the process is already leaving, and if it never fires nothing has been
+// closed at all.
+process.on('exit', () => started?.kill());
 
-main().catch((error) => {
+try {
+  await main();
+} catch (error) {
   console.error(`\n${error.stack}`);
-  process.exit(1);
-});
+  process.exitCode = 1;
+} finally {
+  await closeTheApplication();
+}

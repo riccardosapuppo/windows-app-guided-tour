@@ -11,6 +11,7 @@ jobs:
   # most changes touch.
   format:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
 
     steps:
       - uses: actions/checkout@v4
@@ -53,6 +54,13 @@ jobs:
   # And the half that can only run there.
   windows:
     runs-on: windows-latest
+
+    # This job hung for two hours: the check finished, said every assertion had
+    # passed, and then never exited because the invented application it had
+    # started was still holding the event loop open. A run that hangs stays
+    # amber and nobody looks at it, while a red one sends an email — so there is
+    # an outer bound now as well as the fix.
+    timeout-minutes: 15
 
     steps:
       - uses: actions/checkout@v4
