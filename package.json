@@ -1,0 +1,26 @@
+{
+  "name": "windows-app-guided-tour",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "An overlay that teaches somebody a desktop application: it dims the screen except the control being explained, waits for the step to be done, and can do it for them.",
+  "author": "Riccardo Sapuppo",
+  "license": "MIT",
+  "main": "tour/main.js",
+  "scripts": {
+    "demo": "electron demo/main.js",
+    "start": "electron tour/main.js",
+    "test": "node --test",
+    "walkthrough": "node tools/walkthrough.mjs",
+    "screenshots": "node tools/screenshots.mjs"
+  },
+  "devDependencies": {
+    "electron": "33.4.11"
+  },
+  "engines": {
+    "node": ">=20.11"
+  },
+  "allowScripts": {
+    "electron@33.4.11": true
+  }
+}
