@@ -1,0 +1,54 @@
+{
+  "_read_me": "A tour of the invented application in demo/. Every step points at an automation id, and every step says how it will know it is finished — read back out of the application, never assumed from having sent a click.",
+
+  "title": "Putting an order on the system",
+  "window": "Stock control",
+  "about": "Six steps, from an empty screen to a saved order. Do them yourself, or press Do it for me and watch.",
+
+  "steps": [
+    {
+      "id": "start-a-new-order",
+      "say": "Start with a clean order. This clears anything left on the screen.",
+      "point": { "id": "newOrder" },
+      "done": { "when": "says", "of": { "id": "status" }, "contains": "A new order" },
+      "canDo": true
+    },
+    {
+      "id": "name-the-customer",
+      "say": "Type who the order is for. Any name will do — everything here is invented.",
+      "point": { "id": "customer" },
+      "done": { "when": "value", "matches": "\\S{2,}" },
+      "canDo": false,
+      "whyNot": "This one is typing, and typing is the step a tour should not do for you: you would not remember it."
+    },
+    {
+      "id": "find-a-part",
+      "say": "Find a part. This fills the part number in for you.",
+      "point": { "id": "findPart" },
+      "done": { "when": "value", "of": { "id": "partNumber" }, "contains": "NB-" },
+      "canDo": true
+    },
+    {
+      "id": "add-the-line",
+      "say": "Add the line to the order. Nothing is saved yet.",
+      "point": { "id": "addLine" },
+      "done": { "when": "says", "of": { "id": "status" }, "contains": "the order has" },
+      "canDo": true
+    },
+    {
+      "id": "notice-save-is-live",
+      "say": "Look at Save the order. It was greyed out a moment ago; now there is a line, it is not.",
+      "point": { "id": "saveOrder" },
+      "done": { "when": "enabled", "of": { "id": "saveOrder" } },
+      "canDo": false,
+      "whyNot": "There is nothing to do here. The step is finished the moment the application allows it, which is the point being made."
+    },
+    {
+      "id": "save-it",
+      "say": "Save the order. It gets a reference, and printing labels becomes possible.",
+      "point": { "id": "saveOrder" },
+      "done": { "when": "says", "of": { "id": "status" }, "contains": "Saved as SO-" },
+      "canDo": true
+    }
+  ]
+}
