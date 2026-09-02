@@ -3,6 +3,28 @@
   <head>
     <meta charset="utf-8" />
     <title>Guided tour</title>
+
+    <!--
+      Nothing but the two files beside this one.
+
+      Not a formality. This page sits over everything somebody is doing, and it
+      is worth being able to say in one line what it is able to load: a
+      stylesheet and a script from this folder, and nothing else at all. No
+      network, no fonts, no images, no inline script.
+
+      `default-src 'none'` is the part that makes it a statement rather than a
+      gesture — every kind of load not named below is refused, including the
+      ones nobody thought of.
+
+      Added because `npm run build` starts the page for real and Electron said
+      there wasn't one. That warning is easy to filter out of a check and is
+      easier to answer.
+    -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'none'; style-src 'self'; script-src 'self'; base-uri 'none'; form-action 'none'"
+    />
+
     <link rel="stylesheet" href="./overlay.css" />
   </head>
 

@@ -140,9 +140,20 @@ npm run walkthrough
 ## Checking it
 
 ```
+npm run build       # starts the overlay for real and reads back what it did
 npm test            # 22 assertions over the tour format
 npm run walkthrough # 34 against the application, on Windows
 ```
+
+**`npm run build`** is what a build means for a project with nothing to
+compile: it starts the overlay, feeds it the messages the main process sends,
+and reads back what the page did with them. It catches what a syntax check
+cannot — a preload that exposes nothing, a page that throws on its first
+message — every one of which leaves an overlay that opens and does nothing,
+which is the worst way for this to fail because it looks like it is working.
+
+It is also how the page came to have a Content-Security-Policy: starting it for
+real is what said there was not one.
 
 **`npm test`** checks the format with invented readings. It is good at saying
 the rules still hold and completely blind to the failure this project actually

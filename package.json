@@ -10,6 +10,7 @@
   "scripts": {
     "demo": "electron demo/main.js",
     "start": "electron tour/main.js",
+    "build": "node tools/build.mjs",
     "test": "node --test",
     "walkthrough": "node tools/walkthrough.mjs",
     "screenshots": "node tools/screenshots.mjs"
