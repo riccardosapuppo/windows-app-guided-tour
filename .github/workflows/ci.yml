@@ -1,0 +1,86 @@
+name: build and check
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  # The parts that are not Windows: the tour format, the conditions, and every
+  # tour in the repository being valid. These run anywhere, and they are what
+  # most changes touch.
+  format:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Exactly the minimum the README claims.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20.11'
+          cache: npm
+
+      - run: npm ci --ignore-scripts
+
+      - name: The tour format, and every tour in this repository
+        run: npm test
+
+      # An assertion about what this is, that fails loudly if it stops being
+      # true: one dependency, and the only thing that touches Windows is the one
+      # helper it is supposed to be.
+      - name: One dependency, and one place that touches Windows
+        run: |
+          node -e '
+            const held = Object.keys(require("./package.json").dependencies ?? {});
+            const dev = Object.keys(require("./package.json").devDependencies ?? {});
+            console.log("runtime:", held.join(", ") || "(none)");
+            console.log("build:", dev.join(", "));
+            if (held.length !== 0 || dev.length !== 1 || dev[0] !== "electron") {
+              console.error("If that is deliberate, say so in the README and change this.");
+              process.exit(1);
+            }
+          '
+          found=$(grep -rl "powershell" src/ tour/ | sort)
+          expected="src/locate/uia.js"
+          if [ "$found" != "$expected" ]; then
+            echo "Something other than the bridge is spawning PowerShell:"
+            echo "$found"
+            exit 1
+          fi
+          echo "Only src/locate/uia.js reaches for Windows."
+
+  # And the half that can only run there.
+  windows:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20.11'
+          cache: npm
+
+      - run: npm ci
+
+      - name: The tour format
+        run: npm test
+
+      # The check that is not written behind the same door as the code: it opens
+      # the invented application and drives every tour through it, which is the
+      # only thing that catches a step pointing at a control that is not there.
+      - name: Start the invented application
+        shell: pwsh
+        run: |
+          Start-Process powershell -ArgumentList '-NoProfile','-ExecutionPolicy','Bypass','-STA','-File','demo/stock.ps1'
+          $until = (Get-Date).AddSeconds(40)
+          do {
+            Start-Sleep -Milliseconds 500
+            $up = Get-Process | Where-Object MainWindowTitle -eq 'Stock control'
+          } while (-not $up -and (Get-Date) -lt $until)
+          if (-not $up) { throw 'the invented application did not open' }
+          'it is up'
+
+      - name: Drive every tour against it
+        run: npm run walkthrough

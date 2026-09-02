@@ -39,6 +39,7 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase
         Title="Stock control"
         Width="940" Height="620"
         WindowStartupLocation="CenterScreen"
+        WindowState="Maximized"
         Background="#F3F5F7"
         FontFamily="Segoe UI" FontSize="13">
 
