@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Guided tour</title>
+    <link rel="stylesheet" href="./overlay.css" />
+  </head>
+
+  <body>
+    <!--
+      The dimming is four panes, not one pane with a hole in it.
+
+      A single dark layer with a transparent cut-out needs either an SVG mask or
+      a very large box-shadow, and both are repainted in full every time the
+      hole moves — which is several times a second while a window is being
+      dragged. Four rectangles that meet around the control are four cheap
+      moves of four divs, and the hole is whatever they leave.
+
+      It is also the technique the original used, and it was right.
+    -->
+    <div class="dim" id="dimTop"></div>
+    <div class="dim" id="dimBottom"></div>
+    <div class="dim" id="dimLeft"></div>
+    <div class="dim" id="dimRight"></div>
+
+    <!-- The ring around the control. Outside the hole, so it never covers the
+         thing it is pointing at. -->
+    <div class="ring" id="ring" hidden></div>
+
+    <!-- The card. The only part of this window that takes a click. -->
+    <section class="card" id="card">
+      <header>
+        <span class="count" id="count">—</span>
+        <span class="title" id="title">Guided tour</span>
+      </header>
+
+      <p class="say" id="say">Looking for the application…</p>
+
+      <p class="lost" id="lost" hidden></p>
+
+      <p class="watching" id="watchingWhy"></p>
+
+      <footer>
+        <button type="button" id="doIt" class="go">Do it for me</button>
+        <button type="button" id="skip" class="quiet">Skip</button>
+        <button type="button" id="stop" class="quiet">Stop</button>
+      </footer>
+
+      <p class="whyNot" id="whyNot" hidden></p>
+    </section>
+
+    <!-- The end. Not a dialog: the tour is over, and the last thing somebody
+         wants is another thing to dismiss. -->
+    <section class="card done" id="done" hidden>
+      <header><span class="title">Finished</span></header>
+      <p class="say" id="doneSay"></p>
+      <footer>
+        <button type="button" id="openLog" class="quiet">Where the log went</button>
+        <button type="button" id="close" class="go">Close</button>
+      </footer>
+    </section>
+
+    <script src="./overlay.js"></script>
+  </body>
+</html>

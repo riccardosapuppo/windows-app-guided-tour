@@ -1,0 +1,224 @@
+/* The look, and where it comes from.
+ *
+ * This is not a page. It is a sheet of glass over somebody else's application,
+ * and everything about it follows from that:
+ *
+ *   - **The dimming is the design.** The one bright thing on the screen is the
+ *     control being explained, and it is bright because everything else is not.
+ *     No accent colour competes with it — there is exactly one, on the button
+ *     that does something.
+ *   - **The card is small and moves.** It sits near what it is describing and
+ *     never on top of it. A tour that covers the button it is talking about is
+ *     the most annoying thing in the genre.
+ *   - **Nothing animates except the hole.** The panes move with a short ease so
+ *     the eye follows from one control to the next, which is the one thing
+ *     motion is genuinely for here. Everything else appears.
+ */
+
+:root {
+  --ink: #10161d;
+  --ink-soft: #46525e;
+  --ink-faint: #7b8794;
+
+  --card: #ffffff;
+  --line: #e2e7eb;
+
+  /* The one accent. On the button that acts, and nowhere else. */
+  --go: #2f5d8a;
+
+  --dim: rgb(9 14 20 / 0.62);
+  --ring: #ffd24a;
+
+  --ui: system-ui, -apple-system, 'Segoe UI Variable Text', 'Segoe UI', Roboto, sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ink: #e8edf2;
+    --ink-soft: #aab5c0;
+    --ink-faint: #7b8794;
+    --card: #1a222b;
+    --line: #2c3742;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  background: transparent;
+  font-family: var(--ui);
+  /* The window is click-through as a whole; the card turns this back on for
+     itself. Without it the card is visible and cannot be pressed. */
+  user-select: none;
+  cursor: default;
+}
+
+.dim {
+  position: fixed;
+  background: var(--dim);
+  transition: all 180ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+/* The ring sits OUTSIDE the hole, drawn with an outline rather than a border,
+   so it takes no space and cannot creep over the control it is pointing at. */
+.ring {
+  position: fixed;
+  border-radius: 6px;
+  outline: 2px solid var(--ring);
+  outline-offset: 0;
+  box-shadow: 0 0 0 6px rgb(255 210 74 / 0.22);
+  transition: all 180ms cubic-bezier(0.2, 0, 0, 1);
+  pointer-events: none;
+}
+
+.card {
+  position: fixed;
+  width: 22rem;
+  max-width: calc(100vw - 2rem);
+  padding: 0.95rem 1.05rem 0.85rem;
+  background: var(--card);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: 0 10px 34px rgb(9 14 20 / 0.32);
+  font-size: 14px;
+  line-height: 1.5;
+  /* The only part of the window that is meant to be clicked. */
+  pointer-events: auto;
+  transition: left 180ms cubic-bezier(0.2, 0, 0, 1), top 180ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+.card header {
+  display: flex;
+  align-items: baseline;
+  gap: 0.55rem;
+  margin-bottom: 0.4rem;
+}
+
+.count {
+  padding: 0.1rem 0.45rem;
+  border-radius: 999px;
+  background: var(--go);
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.title {
+  font-size: 0.78rem;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.say {
+  margin: 0 0 0.6rem;
+}
+
+/* What the tour is waiting for, in the application's own words. Small, and
+   always there: a tour that goes quiet while it waits looks like a tour that
+   has stopped. */
+.watching {
+  margin: 0 0 0.7rem;
+  font-size: 0.78rem;
+  color: var(--ink-faint);
+  min-height: 1.1em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.watching[data-trouble='yes'] {
+  color: #9c2f2a;
+}
+
+/* The application cannot be found. Not hidden: this is something the person
+   can fix by bringing a window forward. */
+.lost {
+  margin: 0 0 0.7rem;
+  padding: 0.45rem 0.6rem;
+  border-radius: 8px;
+  background: #fae9e7;
+  color: #9c2f2a;
+  font-size: 0.82rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  .lost {
+    background: #351d1b;
+    color: #e58b83;
+  }
+}
+
+.whyNot {
+  margin: 0.6rem 0 0;
+  padding-top: 0.55rem;
+  border-top: 1px solid var(--line);
+  font-size: 0.78rem;
+  color: var(--ink-faint);
+}
+
+.card footer {
+  display: flex;
+  gap: 0.4rem;
+}
+
+button {
+  padding: 0.4rem 0.85rem;
+  font: inherit;
+  font-size: 0.86rem;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  border: 1px solid var(--line);
+}
+
+button.go {
+  color: #fff;
+  background: var(--go);
+  border-color: var(--go);
+  margin-right: auto;
+}
+
+button.go:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+button.go:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+button.quiet {
+  color: var(--ink-soft);
+  background: transparent;
+}
+
+button.quiet:hover {
+  color: var(--ink);
+  border-color: var(--ink-faint);
+}
+
+button:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 1px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dim,
+  .ring,
+  .card {
+    transition: none;
+  }
+}
