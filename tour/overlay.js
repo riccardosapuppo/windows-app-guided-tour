@@ -150,6 +150,7 @@ $('openLog').addEventListener('click', () => window.tour.openLog());
 // ---------------------------------------------------------- what comes back
 
 window.tour.on('tour', (about) => {
+  document.getElementById('version').textContent = about.version ? `v${about.version}` : '';
   $('title').textContent = about.title;
   $('say').textContent = about.about ?? '';
   coverEverything();

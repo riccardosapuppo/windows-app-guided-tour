@@ -70,17 +70,7 @@ jobs:
       # The check that is not written behind the same door as the code: it opens
       # the invented application and drives every tour through it, which is the
       # only thing that catches a step pointing at a control that is not there.
-      - name: Start the invented application
-        shell: pwsh
-        run: |
-          Start-Process powershell -ArgumentList '-NoProfile','-ExecutionPolicy','Bypass','-STA','-File','demo/stock.ps1'
-          $until = (Get-Date).AddSeconds(40)
-          do {
-            Start-Sleep -Milliseconds 500
-            $up = Get-Process | Where-Object MainWindowTitle -eq 'Stock control'
-          } while (-not $up -and (Get-Date) -lt $until)
-          if (-not $up) { throw 'the invented application did not open' }
-          'it is up'
-
-      - name: Drive every tour against it
+      # It starts the invented application itself if it is not up, so this is
+      # one line rather than three and cannot drift out of step with the demo.
+      - name: Drive every tour against the invented application
         run: npm run walkthrough

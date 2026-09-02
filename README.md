@@ -137,6 +137,9 @@ Then write the steps, and check them before anybody sees them:
 npm run walkthrough
 ```
 
+It starts the invented application itself if it is not already up, so it runs
+from nothing.
+
 ## Checking it
 
 ```

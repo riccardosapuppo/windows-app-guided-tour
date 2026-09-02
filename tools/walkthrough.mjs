@@ -29,6 +29,7 @@
  */
 
 import fs from 'node:fs';
+import { spawn } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -50,6 +51,7 @@ const TYPED = {
   quantity: '2',
 };
 
+let started = null;
 let checks = 0;
 let failures = 0;
 
@@ -65,6 +67,9 @@ function expect(what, condition, detail) {
 }
 
 const uia = accessibility();
+
+const isOpen = async (title) =>
+  Boolean((await uia.windows()).windows?.some((one) => one.title.includes(title)));
 
 async function main() {
   console.log('Driving every tour against the application it is about\n');
@@ -85,21 +90,35 @@ async function main() {
 
     expect('it is a valid tour', whatIsWrongWith(tour).length === 0, whatIsWrongWith(tour).join(' | '));
 
-    const windows = await uia.windows();
-    const open = windows.windows?.some((one) => one.title.includes(tour.window));
+    let open = await isOpen(tour.window);
 
-    if (!open) {
-      expect(
-        `the application it is about is open ("${tour.window}")`,
-        false,
-        `start it with: npm run demo — the windows on this desktop are: ${
-          windows.windows?.map((one) => one.title).slice(0, 6).join(', ') ?? 'none'
-        }`
+    // Started here if it is not up, so this check runs from nothing — which is
+    // also what makes it one line in CI rather than three.
+    if (!open && tour.window === 'Stock control') {
+      console.log('  (the invented application was not running; starting it)');
+      started = spawn(
+        'powershell.exe',
+        ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-STA', '-File', path.join(here, '..', 'demo', 'stock.ps1')],
+        { stdio: 'ignore' }
       );
-      continue;
+
+      for (let tries = 0; tries < 40 && !open; tries += 1) {
+        await pause(500);
+        open = await isOpen(tour.window);
+      }
     }
 
-    expect(`the application it is about is open ("${tour.window}")`, true);
+    expect(
+      `the application it is about is open ("${tour.window}")`,
+      open,
+      // How many windows there are, never their titles. A check's output gets
+      // pasted into a message to somebody, and the titles of the windows on a
+      // person's desktop say what they were doing, what they had open, and who
+      // they work for.
+      `${(await uia.windows()).windows?.length ?? 0} windows on this desktop, and none of them is it`
+    );
+
+    if (!open) continue;
 
     // --------------------------------------- every step points at something real
     console.log('\n  Every step points at a control that exists');
@@ -249,6 +268,8 @@ async function waitUntilFinished(tour, step, timeoutMs = 5000) {
 }
 
 const pause = (ms) => new Promise((done) => setTimeout(done, ms));
+
+process.on("exit", () => started?.kill());
 
 main().catch((error) => {
   console.error(`\n${error.stack}`);

@@ -222,3 +222,14 @@ button:focus-visible {
     transition: none;
   }
 }
+
+/* Who wrote it, and which version of it this is. Quiet, and at the foot of the
+   card: somebody looking at a window that covers their screen should be able
+   to find out what it is without hunting. */
+.who {
+  margin: 0.7rem 0 0;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--line);
+  font-size: 0.7rem;
+  color: var(--ink-faint);
+}

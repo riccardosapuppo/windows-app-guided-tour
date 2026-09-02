@@ -8,8 +8,8 @@
   "license": "MIT",
   "main": "tour/main.js",
   "scripts": {
-    "demo": "electron demo/main.js",
-    "start": "electron tour/main.js",
+    "demo": "node tools/run-demo.mjs",
+    "start": "node tools/run-tour.mjs",
     "build": "node tools/build.mjs",
     "test": "node --test",
     "walkthrough": "node tools/walkthrough.mjs",

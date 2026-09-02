@@ -32,6 +32,29 @@ import { fileURLToPath } from 'node:url';
 import { accessibility } from '../src/locate/uia.js';
 import { isFinished, watching, whatIsWrongWith, whatToRead } from '../src/tour/steps.js';
 
+/**
+ * Running under Node instead of Electron, which is a sentence rather than a
+ * stack trace.
+ *
+ * `ELECTRON_RUN_AS_NODE` makes the Electron binary behave as a plain Node, and
+ * some tools set it in the environment they hand to their children. When it is
+ * set, `import { app } from 'electron'` gives back the PATH to the binary — a
+ * string — and the first line that touches it dies on
+ * "Cannot read properties of undefined (reading 'whenReady')".
+ *
+ * That message sent me looking for a bug in this file for twenty minutes. It is
+ * two lines to say what actually happened.
+ */
+if (typeof app?.whenReady !== 'function') {
+  console.error('This is being run as plain Node rather than as Electron.');
+  console.error(
+    process.env.ELECTRON_RUN_AS_NODE
+      ? 'ELECTRON_RUN_AS_NODE is set in this environment. Unset it and try again.'
+      : 'Start it with `npm start`, which runs it under Electron.'
+  );
+  process.exit(1);
+}
+
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.join(here, '..');
 
@@ -104,7 +127,14 @@ async function start() {
 
   say('info', 'the tour is up', { tour: tour.title, steps: tour.steps.length, window: tour.window });
 
-  overlay.webContents.send('tour', { title: tour.title, about: tour.about, steps: tour.steps.length });
+  overlay.webContents.send('tour', {
+    title: tour.title,
+    about: tour.about,
+    steps: tour.steps.length,
+    // Read from package.json rather than written down twice. A version in two
+    // places is a version that is wrong in one of them.
+    version: JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8')).version,
+  });
   await show(0);
 }
 
