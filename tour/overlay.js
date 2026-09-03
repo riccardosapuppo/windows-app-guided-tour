@@ -60,6 +60,29 @@ function cut(rect) {
   place();
 }
 
+/**
+ * Nothing dimmed, nothing ringed.
+ *
+ * This is the state while the application being taught is not on the screen,
+ * and it is deliberately not the same as `coverEverything`. Dimming the whole
+ * desktop to say "I am waiting" takes over a screen the tour has no business
+ * taking over — the person may be opening the application, and the tour would
+ * be dimming the thing they are clicking.
+ *
+ * So while it waits it is a card and nothing else. The dimming and the hole
+ * are earned by having found the window, not assumed.
+ */
+function dimNothing() {
+  hole = null;
+  $('ring').hidden = true;
+
+  for (const pane of Object.values(dims)) {
+    Object.assign(pane.style, { left: '0px', top: '0px', width: '0px', height: '0px' });
+  }
+
+  place();
+}
+
 /** Everything dark, when there is nothing to point at. */
 function coverEverything() {
   hole = null;
@@ -170,6 +193,34 @@ window.tour.on('step', (step) => {
   $('whyNot').textContent = step.whyNot ?? '';
 
   place();
+});
+
+/**
+ * The application being taught is not on the screen.
+ *
+ * Everything the tour would draw is an assertion about a window that is not
+ * there, so it draws none of it: no dimming, no ring, no step. Just which
+ * window it is waiting for, which is the one thing the person can act on.
+ */
+window.tour.on('waiting', (about) => {
+  dimNothing();
+
+  $('count').textContent = 'waiting';
+  $('title').textContent = 'Guided tour';
+  $('say').textContent = `Waiting for the application. Open the window called "${about.window}".`;
+  $('lost').hidden = true;
+  $('watchingWhy').textContent = about.why ?? '';
+  delete $('watchingWhy').dataset.trouble;
+  $('doIt').hidden = true;
+  $('whyNot').hidden = true;
+
+  place();
+});
+
+/** Found it. The step that follows will do the drawing. */
+window.tour.on('attached', () => {
+  $('watchingWhy').textContent = '';
+  delete $('watchingWhy').dataset.trouble;
 });
 
 window.tour.on('hole', (rect) => cut(rect));

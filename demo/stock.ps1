@@ -28,7 +28,20 @@
 
 param(
     [int] $Width = 940,
-    [int] $Height = 620
+    [int] $Height = 620,
+
+    # The process that started this one, when there is one.
+    #
+    # A window has no parent in any sense the operating system enforces: kill
+    # the launcher and this keeps running, with nothing left that knows about
+    # it. That is not theoretical -- closing the terminal is how most people
+    # stop a thing -- and what it leaves behind is a window nobody owns that
+    # the next run then fights with over the title the tour is looking for.
+    #
+    # So when a parent is named, this checks every couple of seconds whether it
+    # is still there, and closes itself when it is not. Zero means nobody asked
+    # for that, which is the case when the demo is started on its own.
+    [int] $ParentPid = 0
 )
 
 Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase
@@ -232,5 +245,20 @@ $saveOrder.Add_Click({
 $printLabels.Add_Click({
     Say 'Labels sent to the printer. Nothing was really printed.'
 })
+
+# Nothing outlives whoever asked for it.
+if ($ParentPid -gt 0) {
+    $watchdog = New-Object System.Windows.Threading.DispatcherTimer
+    $watchdog.Interval = [TimeSpan]::FromSeconds(2)
+
+    $watchdog.Add_Tick({
+        if (-not (Get-Process -Id $ParentPid -ErrorAction SilentlyContinue)) {
+            $watchdog.Stop()
+            $window.Close()
+        }
+    }.GetNewClosure())
+
+    $watchdog.Start()
+}
 
 $window.ShowDialog() | Out-Null

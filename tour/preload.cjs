@@ -13,7 +13,9 @@ contextBridge.exposeInMainWorld('tour', {
   // From the main process: where to cut the hole, what to say, and whether the
   // step it is watching has finished.
   on: (what, then) => {
-    const allowed = ['tour', 'step', 'hole', 'lost', 'watching', 'finished'];
+    // 'waiting' and 'attached' are the two that say whether the application
+    // being taught is on the screen at all. Nothing is drawn between them.
+    const allowed = ['tour', 'step', 'hole', 'lost', 'watching', 'finished', 'waiting', 'attached'];
     if (!allowed.includes(what)) return;
     ipcRenderer.on(what, (event, payload) => then(payload));
   },

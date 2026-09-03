@@ -8,8 +8,9 @@
   "license": "MIT",
   "main": "tour/main.js",
   "scripts": {
+    "start": "node tools/run-both.mjs",
+    "tour": "node tools/run-tour.mjs",
     "demo": "node tools/run-demo.mjs",
-    "start": "node tools/run-tour.mjs",
     "build": "node tools/build.mjs",
     "test": "node --test",
     "walkthrough": "node tools/walkthrough.mjs",

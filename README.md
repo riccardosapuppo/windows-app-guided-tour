@@ -84,13 +84,12 @@ that makes an application usable with a screen reader.
 
 ## Running it
 
-Two terminals.
+One command. It starts the invented application and the tour over it, and stops
+both when either one goes.
 
 ```
 npm install
-
-npm run demo     # the invented application to be taught
-npm start        # the tour over it
+npm start
 ```
 
 The overlay covers the screen — that is what it is for — and closes on **Stop**.
@@ -100,6 +99,59 @@ Point it at a different tour:
 ```
 npm start -- --tour tours/stock-control.json --poll-ms 600
 ```
+
+### The two halves, separately
+
+For when something is wrong and one process at a time is easier to look at than
+two — and because **the tour is meant to be pointed at a real application**, not
+only at the invented one:
+
+```
+npm run demo     # just the application being taught
+npm run tour     # just the overlay
+```
+
+`npm run tour` on its own draws nothing. It says which window it is waiting for
+and keeps looking, which is what it does for any tour file naming any window.
+That is the point of it: `--tour` takes a tour of your own.
+
+### Nothing is drawn until the window is there
+
+The dimming and the hole are both claims about an application, so neither
+happens until that application has actually been found:
+
+- while it waits there is **no dimming and no hole** — a card, saying which
+  window it is looking for, and nothing else. Dimming the desktop to announce
+  that it is waiting would be taking over a screen on which somebody is probably
+  opening the very window it wants;
+- if the application is closed half way through, it goes **back to waiting** on
+  the same step, and picks that step up again when the window returns.
+
+An earlier version drew the step regardless. A ring around where a button would
+be *if* the application were running is not an imperfect guide — it is a
+confident assertion about somebody else's window, and a false one.
+
+### One poll at a time
+
+The condition of a step is read across a process boundary, which takes longer
+than the polling interval more often than not. The first version used
+`setInterval`, so several readings ran at once, all saw the same finished
+condition, and all announced it:
+
+```
+step finished  start-a-new-order      (six times)
+stopped        finished: 6, of: 6
+```
+
+Six of six, with the second step never begun — and, on closing, a timer still in
+flight reaching into a destroyed window.
+
+The scheduling now lives in [`src/tour/one-at-a-time.js`](src/tour/one-at-a-time.js),
+away from the file that imports Electron, precisely so it can be tested: it has
+six tests driven by a clock they control, and the first of them fails against
+the version that was wrong. Three properties, and none of them implies the
+others — never two readings at once, at most one finish, and nothing at all
+after a stop.
 
 ## The invented application
 
@@ -144,7 +196,7 @@ from nothing.
 
 ```
 npm run build       # starts the overlay for real and reads back what it did
-npm test            # 30 assertions over the tour format
+npm test            # 36 over the tour format and the watching
 npm run walkthrough # 34 against the application, on Windows
 ```
 
@@ -158,11 +210,14 @@ which is the worst way for this to fail because it looks like it is working.
 It is also how the page came to have a Content-Security-Policy: starting it for
 real is what said there was not one.
 
-**`npm test`** checks the format with invented readings. It is good at saying
-the rules still hold and completely blind to the failure this project actually
-has: a tour that points at a control which is not there. A mistyped automation
-id passes every unit test ever written and fails at step four, in front of the
-person the tour was written for.
+**`npm test`** checks two things with invented readings: the tour format, and
+the watching. The second half is driven by a clock the tests control, because a
+concurrency test that sleeps is a test that passes on the machine that wrote it.
+
+It is good at saying the rules still hold and completely blind to the failure
+this project actually has: a tour that points at a control which is not there. A
+mistyped automation id passes every unit test ever written and fails at step
+four, in front of the person the tour was written for.
 
 **`npm run walkthrough`** is the check not written behind the same door as the
 code. It opens the real application and, for every step of every tour, finds

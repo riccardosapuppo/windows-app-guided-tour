@@ -68,7 +68,7 @@ describe('every number the README states about its own checks', () => {
     const cases = fs
       .readdirSync(path.join(root, 'test'))
       .filter((one) => one.endsWith('.test.js'))
-      .reduce((all, one) => all + (fs.readFileSync(path.join(root, 'test', one), 'utf8').match(/^\s+it\(/gm) ?? []).length, 0);
+      .reduce((all, one) => all + (fs.readFileSync(path.join(root, 'test', one), 'utf8').match(/^\s+(?:it|test)\(/gm) ?? []).length, 0);
 
     if (counted['npm test'] === undefined) {
       assert.fail('the README does not say how many checks `npm test` runs, so nobody can tell when it drifts');

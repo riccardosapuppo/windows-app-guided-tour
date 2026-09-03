@@ -1,39 +1,28 @@
 #!/usr/bin/env node
 /**
- * Starts the invented application.
+ * Starts the invented application on its own, without the tour.
  *
  *     npm run demo
  *
- * A launcher rather than the PowerShell line in `package.json`, for two
- * reasons. It needs `-STA` — a WPF window cannot be created on a
- * multi-threaded apartment and the failure is an exception about apartment
- * state that says nothing to anybody. And on anything that is not Windows it
- * can say so in a sentence, rather than failing with "powershell: not found".
+ * `npm start` starts both. This is here to look at the application by itself,
+ * which is also how you check that a step's condition is something the
+ * application really does rather than something the tour believes it does.
  */
 
-import { spawn } from 'node:child_process';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { startTheApplication } from './parts.mjs';
 
-const here = path.dirname(fileURLToPath(import.meta.url));
-const script = path.join(here, '..', 'demo', 'stock.ps1');
+const started = startTheApplication();
 
-if (process.platform !== 'win32') {
-  console.error('The application being taught is a Windows one, and this is', `${process.platform}.`);
+if (!started.ok) {
+  console.error(`${started.why}.`);
   console.error('The parts that are not Windows — the tour format, the conditions — run anywhere:');
   console.error('  npm test');
   process.exit(2);
 }
 
-const child = spawn(
-  'powershell.exe',
-  ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-STA', '-File', script],
-  { stdio: 'inherit' }
-);
-
-child.on('error', (error) => {
+started.child.on('error', (error) => {
   console.error(`PowerShell would not start: ${error.message}`);
   process.exit(1);
 });
 
-child.on('exit', (code) => process.exit(code ?? 0));
+started.child.on('exit', (code) => process.exit(code ?? 0));
