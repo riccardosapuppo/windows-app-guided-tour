@@ -144,7 +144,7 @@ from nothing.
 
 ```
 npm run build       # starts the overlay for real and reads back what it did
-npm test            # 22 assertions over the tour format
+npm test            # 30 assertions over the tour format
 npm run walkthrough # 34 against the application, on Windows
 ```
 

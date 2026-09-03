@@ -35,6 +35,7 @@ import { fileURLToPath } from 'node:url';
 
 import { accessibility } from '../src/locate/uia.js';
 import { isFinished, watching, whatIsWrongWith, whatToRead } from '../src/tour/steps.js';
+import { matchesTheReadme } from './what-the-readme-claims.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const TOURS = path.join(here, '..', 'tours');
@@ -233,6 +234,13 @@ async function main() {
     notTypable.ok === false && /does not take a value/.test(notTypable.why),
     JSON.stringify(notTypable)
   );
+
+  // The README's own claim about this command, checked by this command. A
+  // number in a README is a claim about a program sitting right there and able
+  // to be asked; until this line existed nobody ever asked it, and a sibling
+  // project drifted from 86 to 92 without one red run.
+  console.log('');
+  if (!matchesTheReadme('npm run walkthrough', checks)) failures += 1;
 
   console.log('');
   if (failures > 0) {
